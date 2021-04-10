@@ -1,6 +1,9 @@
 import string
 from random import choices, shuffle, choice
 from tkinter import *
+from tkinter import messagebox
+
+import pyperclip
 
 
 # -- PASSWORD GENERATOR -------------- #
@@ -12,12 +15,15 @@ def gen_but():
     new_password += choices(string.digits, k=6)
     shuffle(new_password)
     new_password = "".join(new_password)
+
     # the '|' character confuses the markdown table :)
     if '|' in new_password:
         new_password = new_password.replace('|', choice(string.ascii_lowercase))
+
+    pyperclip.copy(new_password)
+
     pass_inp.delete(0, END)
     pass_inp.insert(0, new_password)
-    print(new_password)
 
 
 # -- SAVE PASSWORD ------------------- #
@@ -25,15 +31,35 @@ def add_but():
     global entries
     file_name = "passwords.md"
 
-    file_entry = f"|{website_inp.get()}|{user_inp.get()}|{pass_inp.get()}|\n"
+    webs_e = website_inp.get()
+    user_e = user_inp.get()
+    pass_e = pass_inp.get()
 
-    entries.append(file_entry)
+    if len(webs_e) and len(pass_e):
 
-    with open(file_name, 'a') as out_file:
-        out_file.writelines(entries)
+        dash = "-----"
 
-    website_inp.delete(0, END)
-    pass_inp.delete(0, END)
+        is_ok = messagebox.askokcancel(
+            title="check the data",
+            message=f"{dash} website {dash}\n{webs_e}\n"
+                    f"{dash} username {dash}\n{user_e}\n"
+                    f"{dash} password {dash}\n{pass_e}\n"
+                    f"\nare you okay to save this?"
+        )
+
+        if is_ok:
+            file_entry = f"|{webs_e}|{user_e}|{pass_e}|\n"
+
+            entries.append(file_entry)
+
+            with open(file_name, 'a') as out_file:
+                out_file.writelines(entries)
+
+            website_inp.delete(0, END)
+            pass_inp.delete(0, END)
+
+    else:
+        messagebox.showinfo(message="fill in all the fields")
 
 
 # -- UI SETUP ------------------------ #
@@ -59,7 +85,6 @@ canvas.create_image(
 canvas.grid(column=1, row=0)
 
 # labels
-
 website_lbl = Label(text="website: ", anchor='e', width=14)
 website_lbl.grid(column=0, row=1)
 
@@ -82,8 +107,6 @@ pass_inp = Entry(width=21, bg="grey96")
 pass_inp.grid(column=1, row=3)
 
 # buttons
-
-
 gen_but = Button(
     text="generate password",
     highlightthickness=0,
