@@ -2,12 +2,6 @@ import string
 from random import choices, shuffle, choice
 from tkinter import *
 
-# read existing passwords
-file_name = "passwords.md"
-
-with open(file_name, 'r') as in_file:
-    entries = in_file.readlines()
-
 
 # -- PASSWORD GENERATOR -------------- #
 def gen_but():
@@ -29,12 +23,13 @@ def gen_but():
 # -- SAVE PASSWORD ------------------- #
 def add_but():
     global entries
+    file_name = "passwords.md"
 
     file_entry = f"|{website_inp.get()}|{user_inp.get()}|{pass_inp.get()}|\n"
 
     entries.append(file_entry)
 
-    with open(file_name, 'w') as out_file:
+    with open(file_name, 'a') as out_file:
         out_file.writelines(entries)
 
     website_inp.delete(0, END)
