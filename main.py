@@ -1,3 +1,4 @@
+import json
 import string
 from random import choices, shuffle, choice
 from tkinter import *
@@ -60,6 +61,29 @@ def add_but():
 
     else:
         messagebox.showinfo(message="fill in all the fields")
+
+
+def md2json():
+    # use to restore json data from md file :)
+
+    json_data = {}
+    with open("passwords.md", 'r') as md_file:
+        data = md_file.readlines()
+
+    for x in range(4, len(data)):
+        d = data[x].split('|')
+        head = d[1]
+
+        json_data[head] = {
+            "user": d[2],
+            "pass": d[3]
+        }
+
+    with open("passwords.json", 'w+') as json_file:
+        json.dump(json_data, json_file, indent=4)
+
+
+# md2json()
 
 
 # -- UI SETUP ------------------------ #
