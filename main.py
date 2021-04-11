@@ -6,6 +6,9 @@ from tkinter import messagebox
 
 import pyperclip
 
+entries = []
+s_data = {}
+
 
 # -- PASSWORD GENERATOR -------------- #
 def gen_but():
@@ -30,7 +33,7 @@ def gen_but():
 # -- SAVE PASSWORD ------------------- #
 def add_but():
     global entries
-    file_name = "passwords.md"
+    file_name = "passwords"
 
     webs_e = website_inp.get()
     user_e = user_inp.get()
@@ -53,8 +56,28 @@ def add_but():
 
             entries.append(file_entry)
 
-            with open(file_name, 'a') as out_file:
+            # write to markdown file
+            with open(file_name + ".md", 'a') as out_file:
                 out_file.writelines(entries)
+
+            new_dict = {
+                webs_e: {
+                    "user": user_e,
+                    "pass": pass_e
+                }
+            }
+
+            try:
+                with open(file_name + ".json", 'r') as json_file:
+                    old_data = json.load(json_file)
+                    old_data.update(new_dict)
+            except FileExistsError:
+                pass
+
+            with open(file_name + ".json", 'w') as json_file:
+                json.dump(old_data, json_file, indent=4)
+
+            s_data.update(new_dict)
 
             website_inp.delete(0, END)
             pass_inp.delete(0, END)
@@ -63,9 +86,23 @@ def add_but():
         messagebox.showinfo(message="fill in all the fields")
 
 
-def md2json():
-    # use to restore json data from md file :)
+# -- SEARCH PASSWORD ---------------- #
+def search_but():
+    in_txt = website_inp.get()
+    if in_txt != '':
+        sites = list(s_data.keys())
+        pass_inp.delete(0, END)
 
+        if in_txt in sites:
+            password = s_data[in_txt]['pass']
+            pass_inp.insert(END, password)
+            pyperclip.copy(password)
+        else:
+            pass_inp.insert(END, "N O T   F O U N D")
+
+
+def md2json():
+    # use to restore json file from markdown :)
     json_data = {}
     with open("passwords.md", 'r') as md_file:
         data = md_file.readlines()
@@ -85,11 +122,16 @@ def md2json():
 
 # md2json()
 
+try:
+    with open("passwords.json", 'r') as json_file:
+        s_data = json.load(json_file)
+except FileExistsError:
+    pass
 
 # -- UI SETUP ------------------------ #
 win = Tk()
 win.title("password manager")
-win.config(padx=20, pady=20)
+win.config(padx=30, pady=20)
 
 # image
 logo = PhotoImage(file="logo.png")
@@ -109,30 +151,30 @@ canvas.create_image(
 canvas.grid(column=1, row=0)
 
 # labels
-website_lbl = Label(text="website: ", anchor='e', width=14)
+website_lbl = Label(text="website: ", anchor='e', width=8)
 website_lbl.grid(column=0, row=1)
 
-user_lbl = Label(text="email / username: ", anchor='e', width=14)
+user_lbl = Label(text="username: ", anchor='e', width=8)
 user_lbl.grid(column=0, row=2)
 
-pass_lbl = Label(text="password: ", anchor='e', width=14)
+pass_lbl = Label(text="password: ", anchor='e', width=8)
 pass_lbl.grid(column=0, row=3)
 
 # entries
-website_inp = Entry(width=35, bg="grey96")
-website_inp.grid(column=1, row=1, columnspan=2)
+website_inp = Entry(width=28, bg="grey96")
+website_inp.grid(column=1, row=1)
 website_inp.focus()
 
 user_inp = Entry(width=35, bg="grey96")
 user_inp.grid(column=1, row=2, columnspan=2)
 user_inp.insert(END, "fred@flintstone.com")
 
-pass_inp = Entry(width=21, bg="grey96")
+pass_inp = Entry(width=28, bg="grey96")
 pass_inp.grid(column=1, row=3)
 
 # buttons
 gen_but = Button(
-    text="generate password",
+    text="generate",
     highlightthickness=0,
     command=gen_but
 )
@@ -147,5 +189,13 @@ add_but = Button(
 )
 
 add_but.grid(column=1, row=4, columnspan=2)
+
+search_but = Button(
+    text="search",
+    highlightthickness=0,
+    command=search_but
+)
+
+search_but.grid(column=2, row=1)
 
 win.mainloop()
